@@ -4,13 +4,9 @@ import { NextApiResponseServerIO } from '@/types/next';
 
 export default (req: NextApiRequest, res: NextApiResponseServerIO) => {
   if (req.method === 'POST') {
-    // get message
-    const position = req.body;
-    console.log({ position });
-    // dispatch to channel "position"
+    const { position } = req.body;
     res?.socket?.server?.io?.emit('change-position', position);
 
-    // return message
-    res.status(201).json(position);
+    res.status(201);
   }
 };
