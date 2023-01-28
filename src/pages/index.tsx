@@ -1,5 +1,5 @@
 import { BricksContainer } from '@/components/BricksContainer';
-import { Bricks } from '@/components/Bricks';
+import { Brick } from '@/components/Brick';
 import { bricksArray } from '@/utils';
 import { Layout } from '@/components/Layout';
 
@@ -19,7 +19,7 @@ export default function Home() {
     <Layout>
       <BricksContainer>
         {bricksArray.map((i, index) => (
-          <Bricks key={i} index={index} />
+          <Brick key={i} index={index} />
         ))}
       </BricksContainer>
     </Layout>

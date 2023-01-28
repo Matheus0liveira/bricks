@@ -6,7 +6,7 @@ type BricksProps = {
   index: number;
 };
 
-function BricksComponent({ index }: BricksProps) {
+export function Brick({ index }: BricksProps) {
   const currentSelect = useGameStore((s) => s.currentSelect);
   const currentPointPosition = useGameStore((s) => s.currentPointPosition);
 
@@ -51,5 +51,3 @@ function BricksComponent({ index }: BricksProps) {
     </Box>
   );
 }
-
-export const Bricks = memo(BricksComponent);
