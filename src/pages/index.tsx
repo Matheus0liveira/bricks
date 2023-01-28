@@ -1,7 +1,7 @@
 import Head from 'next/head';
 import { Header } from '@/components/Header';
 import { Container } from '@/components/Container';
-import { Flex } from '@/components/Flex';
+import { BricksContainer } from '@/components/BricksContainer';
 import { Box } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
@@ -108,7 +108,7 @@ export default function Home() {
       </Head>
       <Header {...data} />
       <Container>
-        <Flex ref={flexRef}>
+        <BricksContainer ref={flexRef}>
           {Array.from({ length: 10 * 10 }).map((_, i) => (
             <Box
               key={i}
@@ -133,7 +133,7 @@ export default function Home() {
               </p>
             </Box>
           ))}
-        </Flex>
+        </BricksContainer>
       </Container>
     </>
   );

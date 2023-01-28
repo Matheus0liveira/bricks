@@ -2,7 +2,7 @@
 import { Flex as MantineFlex } from '@mantine/core';
 import { forwardRef, PropsWithChildren } from 'react';
 
-export const Flex = forwardRef<HTMLDivElement, PropsWithChildren>(
+export const BricksContainer = forwardRef<HTMLDivElement, PropsWithChildren>(
   ({ children }, ref) => {
     return (
       <MantineFlex
