@@ -1,13 +1,17 @@
 import { useGameStore } from '@/stores/game.store';
-import { Flex as MantineFlex, Container } from '@mantine/core';
+import { TOTAL_COLS, TOTAL_ROWS } from '@/utils';
+import { Flex as MantineFlex, Container, Button, Header } from '@mantine/core';
 import {
   forwardRef,
+  memo,
   PropsWithChildren,
   useCallback,
   useEffect,
   useMemo,
   useRef,
 } from 'react';
+import { PlayerPlay, PlayerPause } from 'tabler-icons-react';
+import { ToggleStatus } from '../ToggleStatusButton';
 
 type KeyVariables = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
 
@@ -23,9 +27,14 @@ type KeyFuncs = Record<KeyVariables, (c: CheckEvent) => void | false>;
 export const BricksContainer = forwardRef<HTMLDivElement, PropsWithChildren>(
   ({ children }) => {
     const flexRef = useRef<HTMLDivElement>(null);
-    const handleChangeSelect = useGameStore(
-      (store) => store.handleChangeSelect
+    const handleChangeSelect = useGameStore((s) => s.handleChangeSelect);
+    const currentPointPosition = useGameStore((s) => s.currentPointPosition);
+    const handleChangePointPosition = useGameStore(
+      (s) => s.handleChangePointPosition
     );
+    const status = useGameStore((s) => s.status);
+    const toggleStatus = useGameStore((s) => s.toggleStatus);
+    const currentSelect = useGameStore((s) => s.currentSelect);
 
     const checkEvent = useCallback(() => {
       if (!flexRef.current)
@@ -92,8 +101,39 @@ export const BricksContainer = forwardRef<HTMLDivElement, PropsWithChildren>(
       return () => removeEventListener('keydown', keyDownEvent);
     }, [checkEvent, keyFuncs]);
 
+    useEffect(() => {
+      if (currentSelect === currentPointPosition && status === 'running') {
+        handleChangePointPosition(generatePointNumber());
+      }
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [currentSelect]);
+
+    const generatePointNumber = useCallback(() => {
+      let num: number = Math.floor(Math.random() * (TOTAL_COLS * TOTAL_ROWS));
+
+      if (num === currentSelect) {
+        return Math.floor(Math.random() * (TOTAL_COLS * TOTAL_ROWS));
+      }
+      return num;
+    }, [currentSelect]);
+
+    const handleChangeStatus = useCallback(() => {
+      toggleStatus();
+
+      if (status === 'running') {
+        return handleChangePointPosition(null);
+      }
+
+      handleChangePointPosition(generatePointNumber());
+
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [status]);
+
     return (
-      <Container maw={500}>
+      <MyContainer>
+        <Header height={56} mb={16}>
+          <ToggleStatus handleChangeStatus={handleChangeStatus} />
+        </Header>
         <MantineFlex
           ref={flexRef}
           mih={50}
@@ -105,7 +145,11 @@ export const BricksContainer = forwardRef<HTMLDivElement, PropsWithChildren>(
         >
           {children}
         </MantineFlex>
-      </Container>
+      </MyContainer>
     );
   }
 );
+
+const MyContainer = memo(({ children }: PropsWithChildren) => (
+  <Container maw={500}>{children}</Container>
+));
