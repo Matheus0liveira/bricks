@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { TOTAL_COLS as COLUMNS } from '@/utils';
+import { GameService } from '@/services/game.service';
 
 export type UseGameStore = {
   status: 'paused' | 'running';
@@ -18,17 +19,37 @@ export const useGameStore = create<UseGameStore>((set) => ({
     return set((s) => ({ ...s, currentPointPosition: position }));
   },
   handleChangeSelect(type) {
+    const service = new GameService();
+
     if (type === 'up') {
-      return set((s) => ({ ...s, currentSelect: s.currentSelect - COLUMNS }));
+      return set((s) => {
+        const newPosition = s.currentSelect - COLUMNS;
+        service.sendPosition(newPosition);
+        return { ...s, currentSelect: newPosition };
+      });
     }
     if (type === 'down') {
-      return set((s) => ({ ...s, currentSelect: s.currentSelect + COLUMNS }));
+      return set((s) => {
+        const newPosition = s.currentSelect + COLUMNS;
+        service.sendPosition(newPosition);
+
+        return { ...s, currentSelect: newPosition };
+      });
     }
     if (type === 'left') {
-      return set((s) => ({ ...s, currentSelect: s.currentSelect - 1 }));
+      return set((s) => {
+        const newPosition = s.currentSelect - 1;
+        service.sendPosition(newPosition);
+        return { ...s, currentSelect: newPosition };
+      });
     }
     if (type === 'right') {
-      return set((s) => ({ ...s, currentSelect: s.currentSelect + 1 }));
+      return set((s) => {
+        const newPosition = s.currentSelect + 1;
+        service.sendPosition(newPosition);
+
+        return { ...s, currentSelect: newPosition };
+      });
     }
   },
   toggleStatus() {
