@@ -1,6 +1,5 @@
 import Head from 'next/head';
 import { Header } from '@/components/Header';
-import { Container } from '@/components/Container';
 import { BricksContainer } from '@/components/BricksContainer';
 import { Box } from '@mantine/core';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -107,34 +106,32 @@ export default function Home() {
         <link rel='icon' href='/favicon.ico' />
       </Head>
       <Header {...data} />
-      <Container>
-        <BricksContainer ref={flexRef}>
-          {Array.from({ length: 10 * 10 }).map((_, i) => (
-            <Box
-              key={i}
-              bg={currentSelected === i ? 'grape' : 'gray'}
-              className={currentSelected === i ? 'active' : undefined}
-              w={40}
-              h={40}
-              display='flex'
-              sx={{
-                justifyContent: 'center',
-                alignItems: 'center',
-                borderRadius: '2px',
-                transition: 'background .2s ease-in',
-                borderWidth: currentSelected === i ? '2px' : '1px',
-                borderStyle: 'dashed',
-                borderColor: currentSelected === i ? 'grape' : 'gray',
-              }}
-            >
-              <p style={{ opacity: currentSelected === i ? '0.5' : '0.06' }}>
-                {' '}
-                {i.toFixed().padStart(2, '0')}
-              </p>
-            </Box>
-          ))}
-        </BricksContainer>
-      </Container>
+      <BricksContainer ref={flexRef}>
+        {Array.from({ length: 10 * 10 }).map((_, i) => (
+          <Box
+            key={i}
+            bg={currentSelected === i ? 'grape' : 'gray'}
+            className={currentSelected === i ? 'active' : undefined}
+            w={40}
+            h={40}
+            display='flex'
+            sx={{
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: '2px',
+              transition: 'background .2s ease-in',
+              borderWidth: currentSelected === i ? '2px' : '1px',
+              borderStyle: 'dashed',
+              borderColor: currentSelected === i ? 'grape' : 'gray',
+            }}
+          >
+            <p style={{ opacity: currentSelected === i ? '0.5' : '0.06' }}>
+              {' '}
+              {i.toFixed().padStart(2, '0')}
+            </p>
+          </Box>
+        ))}
+      </BricksContainer>
     </>
   );
 }
