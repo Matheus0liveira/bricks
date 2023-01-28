@@ -1,6 +1,5 @@
 import { useGameStore } from '@/stores/game.store';
 import { Box, DefaultMantineColor } from '@mantine/core';
-import { memo } from 'react';
 
 type BricksProps = {
   index: number;
@@ -32,8 +31,8 @@ export function Brick({ index }: BricksProps) {
           : BgDefaultBrick
       }
       className={isPlayerPosition ? 'active' : undefined}
-      w={40}
-      h={40}
+      w={42.3}
+      h={42.3}
       display='flex'
       sx={{
         justifyContent: 'center',
