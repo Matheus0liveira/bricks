@@ -1,17 +1,7 @@
-import Head from 'next/head';
-import { Header } from '@/components/Header';
 import { BricksContainer } from '@/components/BricksContainer';
-import { Box } from '@mantine/core';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-
-const data = {
-  user: {
-    name: 'Jane Spoonfighter',
-    email: 'janspoon@fighter.dev',
-    image:
-      'https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&ixlib=rb-1.2.1&auto=format&fit=crop&w=255&q=80',
-  },
-};
+import { Bricks } from '@/components/Bricks';
+import { bricksArray } from '@/utils';
+import { Layout } from '@/components/Layout';
 
 type KeyVariables = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
 
@@ -25,113 +15,85 @@ type CheckEvent = () => {
 type KeyFuncs = Record<KeyVariables, (c: CheckEvent) => void | false>;
 
 export default function Home() {
-  const [currentSelected, setCurrentSelected] = useState(0);
-  const flexRef = useRef<HTMLDivElement>(null);
+  // const [currentSelected, setCurrentSelected] = useState(0);
+  // const flexRef = useRef<HTMLDivElement>(null);
 
-  const checkEvent = useCallback(() => {
-    if (!flexRef.current)
-      return {
-        isUpRow: false,
-        isDownRow: false,
-        isLeftColumn: false,
-        isRightColumn: false,
-      };
+  // const checkEvent = useCallback(() => {
+  //   if (!flexRef.current)
+  //     return {
+  //       isUpRow: false,
+  //       isDownRow: false,
+  //       isLeftColumn: false,
+  //       isRightColumn: false,
+  //     };
 
-    const grid = flexRef.current;
+  //   const grid = flexRef.current;
 
-    const active = grid.querySelector('.active');
-    const activeIndex = Array.from(grid.children).indexOf(active as Element);
+  //   const active = grid.querySelector('.active');
+  //   const activeIndex = Array.from(grid.children).indexOf(active as Element);
 
-    const gridChildren = Array.from(grid.children);
-    const gridNum = gridChildren.length;
-    const baseOffset = (gridChildren[0] as any).offsetTop;
-    const breakIndex = gridChildren.findIndex(
-      (item) => (item as any).offsetTop > baseOffset
-    );
-    const numPerRow = breakIndex === -1 ? gridNum : breakIndex;
+  //   const gridChildren = Array.from(grid.children);
+  //   const gridNum = gridChildren.length;
+  //   const baseOffset = (gridChildren[0] as any).offsetTop;
+  //   const breakIndex = gridChildren.findIndex(
+  //     (item) => (item as any).offsetTop > baseOffset
+  //   );
+  //   const numPerRow = breakIndex === -1 ? gridNum : breakIndex;
 
-    const isUpRow = activeIndex <= numPerRow - 1;
-    const isDownRow = activeIndex >= gridNum - numPerRow;
-    const isLeftColumn = activeIndex % numPerRow === 0;
-    const isRightColumn =
-      activeIndex % numPerRow === numPerRow - 1 || activeIndex === gridNum - 1;
+  //   const isUpRow = activeIndex <= numPerRow - 1;
+  //   const isDownRow = activeIndex >= gridNum - numPerRow;
+  //   const isLeftColumn = activeIndex % numPerRow === 0;
+  //   const isRightColumn =
+  //     activeIndex % numPerRow === numPerRow - 1 || activeIndex === gridNum - 1;
 
-    console.log({ isUpRow, isDownRow, isLeftColumn, isRightColumn });
+  //   console.log({ isUpRow, isDownRow, isLeftColumn, isRightColumn });
 
-    return { isUpRow, isDownRow, isLeftColumn, isRightColumn };
-  }, []);
+  //   return { isUpRow, isDownRow, isLeftColumn, isRightColumn };
+  // }, []);
 
-  const handleUpdateItem = useCallback(
-    (type: 'up' | 'down' | 'left' | 'right') => {
-      if (type === 'up') return setCurrentSelected((pv) => pv - 10);
-      if (type === 'down') return setCurrentSelected((pv) => pv + 10);
-      if (type === 'left') return setCurrentSelected((pv) => pv - 1);
-      if (type === 'right') return setCurrentSelected((pv) => pv + 1);
-    },
-    []
-  );
+  // const handleUpdateItem = useCallback(
+  //   (type: 'up' | 'down' | 'left' | 'right') => {
+  //     if (type === 'up') return setCurrentSelected((pv) => pv - 10);
+  //     if (type === 'down') return setCurrentSelected((pv) => pv + 10);
+  //     if (type === 'left') return setCurrentSelected((pv) => pv - 1);
+  //     if (type === 'right') return setCurrentSelected((pv) => pv + 1);
+  //   },
+  //   []
+  // );
 
-  const keyFuncs = useMemo<KeyFuncs>(() => {
-    return {
-      ArrowUp: (c) => !c().isUpRow && handleUpdateItem('up'),
-      ArrowDown: (c) => !c().isDownRow && handleUpdateItem('down'),
-      ArrowLeft: (c) => !c().isLeftColumn && handleUpdateItem('left'),
-      ArrowRight: (c) => !c().isRightColumn && handleUpdateItem('right'),
-    };
-  }, [handleUpdateItem]);
+  // const keyFuncs = useMemo<KeyFuncs>(() => {
+  //   return {
+  //     ArrowUp: (c) => !c().isUpRow && handleUpdateItem('up'),
+  //     ArrowDown: (c) => !c().isDownRow && handleUpdateItem('down'),
+  //     ArrowLeft: (c) => !c().isLeftColumn && handleUpdateItem('left'),
+  //     ArrowRight: (c) => !c().isRightColumn && handleUpdateItem('right'),
+  //   };
+  // }, [handleUpdateItem]);
 
-  useEffect(() => {
-    if (typeof document === 'undefined') return;
+  // useEffect(() => {
+  //   if (typeof document === 'undefined') return;
 
-    const keyDownEvent = (ev: globalThis.KeyboardEvent) => {
-      const { key } = ev;
+  //   const keyDownEvent = (ev: globalThis.KeyboardEvent) => {
+  //     const { key } = ev;
 
-      if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(key))
-        return;
+  //     if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(key))
+  //       return;
 
-      keyFuncs[key as KeyVariables](checkEvent);
-    };
+  //     keyFuncs[key as KeyVariables](checkEvent);
+  //   };
 
-    addEventListener('keydown', keyDownEvent);
+  //   addEventListener('keydown', keyDownEvent);
 
-    return () => removeEventListener('keydown', keyDownEvent);
-  }, [checkEvent, keyFuncs]);
+  //   return () => removeEventListener('keydown', keyDownEvent);
+  // }, [checkEvent, keyFuncs]);
 
   return (
-    <>
-      <Head>
-        <title>Create Next App</title>
-        <meta name='description' content='Generated by create next app' />
-        <meta name='viewport' content='width=device-width, initial-scale=1' />
-        <link rel='icon' href='/favicon.ico' />
-      </Head>
-      <Header {...data} />
-      <BricksContainer ref={flexRef}>
-        {Array.from({ length: 10 * 10 }).map((_, i) => (
-          <Box
-            key={i}
-            bg={currentSelected === i ? 'grape' : 'gray'}
-            className={currentSelected === i ? 'active' : undefined}
-            w={40}
-            h={40}
-            display='flex'
-            sx={{
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderRadius: '2px',
-              transition: 'background .2s ease-in',
-              borderWidth: currentSelected === i ? '2px' : '1px',
-              borderStyle: 'dashed',
-              borderColor: currentSelected === i ? 'grape' : 'gray',
-            }}
-          >
-            <p style={{ opacity: currentSelected === i ? '0.5' : '0.06' }}>
-              {' '}
-              {i.toFixed().padStart(2, '0')}
-            </p>
-          </Box>
+    <Layout>
+      <BricksContainer>
+        {bricksArray.map((i, index) => (
+          <Bricks key={i} index={index} />
         ))}
       </BricksContainer>
-    </>
+    </Layout>
   );
 }
