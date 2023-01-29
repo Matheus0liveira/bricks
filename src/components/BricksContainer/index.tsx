@@ -148,5 +148,5 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
 };
 
 const MyContainer = memo(({ children }: PropsWithChildren) => (
-  <Container maw={500}>{children}</Container>
+  <Container maw={453}>{children}</Container>
 ));
