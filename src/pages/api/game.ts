@@ -7,6 +7,6 @@ export default (req: NextApiRequest, res: NextApiResponseServerIO) => {
     const { position } = req.body;
     res?.socket?.server?.io?.emit('change-position', position);
 
-    res.status(201);
+    res.status(201).json({ ok: true });
   }
 };
