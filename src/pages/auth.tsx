@@ -38,7 +38,7 @@ export default function Auth(props: PaperProps) {
   });
 
   return (
-    <Container maw={453} mt={120}>
+    <Container maw={450} mt={120}>
       <Paper radius='md' p='xl' withBorder {...props}>
         <Text size='lg' weight={500}>
           Welcome, {type} with
