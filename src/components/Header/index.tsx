@@ -12,15 +12,18 @@ import { useDisclosure } from '@mantine/hooks';
 import { Logout, Settings, Trash, ChevronDown } from 'tabler-icons-react';
 import { MantineLogo } from '@mantine/ds';
 import { useStyles } from './useStyles';
+import { signOut, useSession } from 'next-auth/react';
+import { Session } from 'next-auth';
 
 interface HeaderTabsProps {
   user: { name: string; image: string };
 }
 
-export function Header({ user }: HeaderTabsProps) {
+export function Header(props: HeaderTabsProps) {
   const { classes, cx } = useStyles();
   const [opened, { toggle }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
+  const { data } = useSession();
 
   return (
     <div className={classes.header}>
@@ -42,33 +45,38 @@ export function Header({ user }: HeaderTabsProps) {
             onClose={() => setUserMenuOpened(false)}
             onOpen={() => setUserMenuOpened(true)}
           >
-            <Menu.Target>
-              <UnstyledButton
-                className={cx(classes.user, {
-                  [classes.userActive]: userMenuOpened,
-                })}
-              >
-                <Group spacing={7}>
-                  <Avatar
-                    src={user.image}
-                    alt={user.name}
-                    radius='xl'
-                    size={20}
-                  />
-                  <Text weight={500} size='sm' sx={{ lineHeight: 1 }} mr={3}>
-                    {user.name}
-                  </Text>
-                  <ChevronDown size={12} stroke={'1.5'} />
-                </Group>
-              </UnstyledButton>
-            </Menu.Target>
+            {data?.user ? (
+              <Menu.Target>
+                <UnstyledButton
+                  className={cx(classes.user, {
+                    [classes.userActive]: userMenuOpened,
+                  })}
+                >
+                  <Group spacing={7}>
+                    <Avatar
+                      src={data.user.image || ''}
+                      alt={data.user.name || ''}
+                      radius='xl'
+                      size={20}
+                    />
+                    <Text weight={500} size='sm' sx={{ lineHeight: 1 }} mr={3}>
+                      {data.user.name}
+                    </Text>
+                    <ChevronDown size={12} stroke={'1.5'} />
+                  </Group>
+                </UnstyledButton>
+              </Menu.Target>
+            ) : null}
             <Menu.Dropdown>
               <Menu.Label>Settings</Menu.Label>
               <Menu.Item icon={<Settings size={14} stroke={'1.5'} />}>
                 Account settings
               </Menu.Item>
 
-              <Menu.Item icon={<Logout size={14} stroke={'1.5'} />}>
+              <Menu.Item
+                icon={<Logout size={14} stroke={'1.5'} />}
+                onClick={() => signOut()}
+              >
                 Logout
               </Menu.Item>
 

@@ -25,6 +25,10 @@ export const authOptions: AuthOptions = {
   ],
 
   secret: JWT_SECRET,
+  pages: {
+    signIn: '/auth',
+    signOut: '/auth',
+  },
 };
 
 export default NextAuth(authOptions);

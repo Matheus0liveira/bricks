@@ -10,6 +10,7 @@ import {
 import { GetServerSideProps } from 'next';
 import { BuiltInProviderType } from 'next-auth/providers';
 import { memo } from 'react';
+import { getServerSideGuest } from '@/hocs/withGuest';
 
 type AuthPageProps = {
   providers: Record<
@@ -60,9 +61,11 @@ const ProviderButton = memo(({ name, onClick }: ProviderButtonProps) => {
   ) : null;
 });
 
-export const getServerSideProps: GetServerSideProps = async () => {
-  const providers = await getProviders();
-  return {
-    props: { providers },
-  };
-};
+export const getServerSideProps: GetServerSideProps = getServerSideGuest(
+  async () => {
+    const providers = await getProviders();
+    return {
+      props: { providers },
+    };
+  }
+);
