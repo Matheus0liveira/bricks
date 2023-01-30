@@ -1,7 +1,11 @@
 import { Button, ButtonProps } from '@mantine/core';
 import { GithubIcon } from './icons/GithubIcon';
 
-export function GithubButton(props: ButtonProps) {
+type GithubButtonProps = {
+  onClick(): void;
+} & ButtonProps;
+
+export function GithubButton(props: GithubButtonProps) {
   return (
     <Button
       leftIcon={<GithubIcon />}

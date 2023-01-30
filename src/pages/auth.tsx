@@ -1,127 +1,68 @@
-import { useToggle, upperFirst } from '@mantine/hooks';
-import { useForm } from '@mantine/form';
-import {
-  TextInput,
-  PasswordInput,
-  Text,
-  Paper,
-  Group,
-  PaperProps,
-  Button,
-  Divider,
-  Checkbox,
-  Anchor,
-  Stack,
-  ButtonProps,
-  Container,
-} from '@mantine/core';
+import { Text, Paper, Group, Container } from '@mantine/core';
 import { GoogleButton } from '@/components/SocialButtons/GoogleButton';
 import { GithubButton } from '@/components/SocialButtons/GithubButton';
+import {
+  ClientSafeProvider,
+  getProviders,
+  LiteralUnion,
+  signIn,
+} from 'next-auth/react';
+import { GetServerSideProps } from 'next';
+import { BuiltInProviderType } from 'next-auth/providers';
+import { memo } from 'react';
 
-export default function Auth(props: PaperProps) {
-  const [type, toggle] = useToggle(['login', 'register']);
-  const form = useForm({
-    initialValues: {
-      email: '',
-      name: '',
-      password: '',
-      terms: true,
-    },
+type AuthPageProps = {
+  providers: Record<
+    LiteralUnion<BuiltInProviderType, string>,
+    ClientSafeProvider
+  > | null;
+};
 
-    validate: {
-      email: (val) => (/^\S+@\S+$/.test(val) ? null : 'Invalid email'),
-      password: (val) =>
-        val.length <= 6
-          ? 'Password should include at least 6 characters'
-          : null,
-    },
-  });
-
+export default function Auth({ providers }: AuthPageProps) {
   return (
     <Container maw={450} mt={120}>
-      <Paper radius='md' p='xl' withBorder {...props}>
+      <Paper radius='md' p='xl' withBorder>
         <Text size='lg' weight={500}>
-          Welcome, {type} with
+          Welcome, login with
         </Text>
 
         <Group grow mb='md' mt='md'>
-          <GoogleButton radius='xl'>Google</GoogleButton>
-          <GithubButton radius='xl'>Github</GithubButton>
+          {providers
+            ? Object.values(providers).map(({ id, name }) => (
+                <ProviderButton
+                  key={id}
+                  name={name}
+                  onClick={() => signIn(id)}
+                />
+              ))
+            : null}
         </Group>
-
-        <Divider
-          label='Or continue with email'
-          labelPosition='center'
-          my='lg'
-        />
-
-        <form onSubmit={form.onSubmit(() => {})}>
-          <Stack>
-            {type === 'register' && (
-              <TextInput
-                label='Name'
-                placeholder='Your name'
-                value={form.values.name}
-                onChange={(event) =>
-                  form.setFieldValue('name', event.currentTarget.value)
-                }
-              />
-            )}
-
-            <TextInput
-              required
-              label='Email'
-              placeholder='hello@mantine.dev'
-              value={form.values.email}
-              onChange={(event) =>
-                form.setFieldValue('email', event.currentTarget.value)
-              }
-              error={form.errors.email && 'Invalid email'}
-            />
-
-            <PasswordInput
-              required
-              label='Password'
-              placeholder='Your password'
-              value={form.values.password}
-              onChange={(event) =>
-                form.setFieldValue('password', event.currentTarget.value)
-              }
-              error={
-                form.errors.password &&
-                'Password should include at least 6 characters'
-              }
-            />
-
-            {type === 'register' && (
-              <Checkbox
-                label='I accept terms and conditions'
-                checked={form.values.terms}
-                onChange={(event) =>
-                  form.setFieldValue('terms', event.currentTarget.checked)
-                }
-              />
-            )}
-          </Stack>
-
-          <Group position='apart' mt='xl'>
-            <Anchor
-              component='button'
-              type='button'
-              color='dimmed'
-              onClick={() => toggle()}
-              size='xs'
-            >
-              {type === 'register'
-                ? 'Already have an account? Login'
-                : "Don't have an account? Register"}
-            </Anchor>
-            <Button type='submit' variant='gradient'>
-              {upperFirst(type)}
-            </Button>
-          </Group>
-        </form>
       </Paper>
     </Container>
   );
 }
+
+type ProviderButtonProps = {
+  name: string;
+  onClick(): void;
+};
+const ProviderButton = memo(({ name, onClick }: ProviderButtonProps) => {
+  return name !== 'Credentials' ? (
+    name === 'Google' ? (
+      <GoogleButton radius='xl' onClick={onClick}>
+        {name}
+      </GoogleButton>
+    ) : (
+      <GithubButton radius='xl' onClick={onClick}>
+        {name}
+      </GithubButton>
+    )
+  ) : null;
+});
+
+export const getServerSideProps: GetServerSideProps = async () => {
+  const providers = await getProviders();
+  return {
+    props: { providers },
+  };
+};
