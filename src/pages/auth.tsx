@@ -1,4 +1,4 @@
-import { Text, Paper, Group, Container } from '@mantine/core';
+import { Text, Paper, Group, Container, Alert } from '@mantine/core';
 import { GoogleButton } from '@/components/SocialButtons/GoogleButton';
 import { GithubButton } from '@/components/SocialButtons/GithubButton';
 import {
@@ -7,6 +7,7 @@ import {
   LiteralUnion,
   signIn,
 } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import { GetServerSideProps } from 'next';
 import { BuiltInProviderType } from 'next-auth/providers';
 import { memo } from 'react';
@@ -20,8 +21,15 @@ type AuthPageProps = {
 };
 
 export default function Auth({ providers }: AuthPageProps) {
+  const router = useRouter();
+
   return (
     <Container maw={450} mt={120}>
+      {router.query?.error ? (
+        <Alert title='Error' variant='outline' color='yellow' mb={16}>
+          {router.query.error}
+        </Alert>
+      ) : null}
       <Paper radius='md' p='xl' withBorder>
         <Text size='lg' weight={500}>
           Welcome, login with

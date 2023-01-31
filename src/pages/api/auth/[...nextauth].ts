@@ -1,18 +1,17 @@
 import NextAuth, { AuthOptions } from 'next-auth';
 import GoogleProvider from 'next-auth/providers/google';
 import GitHubProvider from 'next-auth/providers/github';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import prisma from '../../../lib/prismadb';
 import {
+  AUTH_SECRET,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET_ID,
   GOOGLE_CLIENT_ID,
   GOOGLE_CLIENT_SECRET,
   JWT_SECRET,
+  NODE_ENV,
 } from '@/shared/constants';
 
 export const authOptions: AuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: GOOGLE_CLIENT_ID,
@@ -24,7 +23,11 @@ export const authOptions: AuthOptions = {
     }),
   ],
 
-  secret: JWT_SECRET,
+  debug: NODE_ENV === 'development',
+  secret: AUTH_SECRET,
+  jwt: {
+    secret: JWT_SECRET,
+  },
   pages: {
     signIn: '/auth',
     signOut: '/auth',
@@ -32,8 +35,3 @@ export const authOptions: AuthOptions = {
 };
 
 export default NextAuth(authOptions);
-
-type CredentialsLogin = {
-  email: string;
-  password: string;
-};
