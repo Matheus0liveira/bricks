@@ -1,6 +1,6 @@
 import { COOKIES } from '@/shared/cookies';
 import { GetServerSidePropsContext } from 'next';
-import { setCookie, destroyCookie } from 'nookies';
+import { setCookie, destroyCookie, parseCookies } from 'nookies';
 
 export const TOTAL_COLS = 9;
 export const TOTAL_ROWS = 9;
@@ -25,11 +25,13 @@ export const clientCreateNewCookie = (name: string, value: string) => {
   });
 };
 
+const ROOM_KEY_NAME = 'room-key';
+
 type CreateRoomCookie = {
   isNewCookie?: boolean;
   value?: string;
 };
-export const createRoomCookie = ({
+export const createClientRoomCookie = ({
   value,
   isNewCookie = false,
 }: CreateRoomCookie) => {
@@ -37,10 +39,13 @@ export const createRoomCookie = ({
     throw Error('[CreateRoomCookie] Value is required');
 
   return clientCreateNewCookie(
-    'room-key',
+    ROOM_KEY_NAME,
     isNewCookie ? crypto.randomUUID() : value ?? ''
   );
 };
-export const deleteRoomCookie = () => {
-  return destroyCookie(null, 'room-key');
+export const deleteClientRoomCookie = () => {
+  return destroyCookie(null, ROOM_KEY_NAME);
+};
+export const getClientRoomCookie = () => {
+  return parseCookies()[ROOM_KEY_NAME];
 };

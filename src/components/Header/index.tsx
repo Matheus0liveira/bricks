@@ -13,7 +13,7 @@ import { Logout, ChevronDown } from 'tabler-icons-react';
 import { MantineLogo } from '@mantine/ds';
 import { useStyles } from './useStyles';
 import { signOut, useSession } from 'next-auth/react';
-import { deleteRoomCookie } from '@/utils';
+import { deleteClientRoomCookie } from '@/utils';
 
 export function Header() {
   const { classes, cx } = useStyles();
@@ -23,7 +23,7 @@ export function Header() {
 
   const handleSignOut = () => {
     signOut();
-    deleteRoomCookie();
+    deleteClientRoomCookie();
   };
 
   return (

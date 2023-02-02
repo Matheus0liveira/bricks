@@ -11,7 +11,7 @@ import {
 import { parseCookies, setCookie } from 'nookies';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import crypto from 'crypto';
-import { createRoomCookie } from '@/utils';
+import { createClientRoomCookie } from '@/utils';
 import { useRouter } from 'next/router';
 
 export default function Room() {
@@ -38,7 +38,7 @@ export default function Room() {
 
         if (!UUID_REGEX.test(value)) throw new Error('Code not valid');
 
-        createRoomCookie({ value });
+        createClientRoomCookie({ value });
 
         setErrorMessage('');
         router.push('/');
@@ -50,7 +50,7 @@ export default function Room() {
   );
 
   const handleCreateNewRoom = useCallback(() => {
-    createRoomCookie({ isNewCookie: true });
+    createClientRoomCookie({ isNewCookie: true });
     setErrorMessage('');
     router.push('/');
   }, [router]);

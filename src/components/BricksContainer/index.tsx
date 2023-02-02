@@ -1,6 +1,15 @@
 import { useGameStore } from '@/stores/game.store';
-import { TOTAL_COLS, TOTAL_ROWS } from '@/utils';
-import { Flex as MantineFlex, Container, Button, Header } from '@mantine/core';
+import { getClientRoomCookie, TOTAL_COLS, TOTAL_ROWS } from '@/utils';
+import {
+  Flex as MantineFlex,
+  Container,
+  Badge,
+  Header,
+  Code,
+  CopyButton,
+  Tooltip,
+  ActionIcon,
+} from '@mantine/core';
 import {
   memo,
   PropsWithChildren,
@@ -9,6 +18,7 @@ import {
   useMemo,
   useRef,
 } from 'react';
+import { Check, Copy } from 'tabler-icons-react';
 import { ToggleStatus } from '../ToggleStatusButton';
 
 const tree = [23, 24, 25, 26, 36, 46, 45, 44, 43, 56, 66, 65, 64, 63];
@@ -129,8 +139,19 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
 
   return (
     <MyContainer>
-      <Header height={56} mb={16}>
+      <Header
+        height={56}
+        mb={16}
+        display='flex'
+        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
+      >
         <ToggleStatus handleChangeStatus={handleChangeStatus} />
+        <MantineFlex direction='column'>
+          <Code display='flex' sx={{ gap: '4px', alignItems: 'center' }}>
+            {getClientRoomCookie()}
+            <MyCopyButton />
+          </Code>
+        </MantineFlex>
       </Header>
       <MantineFlex
         ref={flexRef}
@@ -149,4 +170,16 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
 
 const MyContainer = memo(({ children }: PropsWithChildren) => (
   <Container maw={453}>{children}</Container>
+));
+
+const MyCopyButton = memo(() => (
+  <CopyButton value={getClientRoomCookie()} timeout={2000}>
+    {({ copied, copy }) => (
+      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position='right'>
+        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
+          {copied ? <Check size={16} /> : <Copy size={16} />}
+        </ActionIcon>
+      </Tooltip>
+    )}
+  </CopyButton>
 ));
