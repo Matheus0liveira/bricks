@@ -9,21 +9,22 @@ import {
   Burger,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { Logout, Settings, Trash, ChevronDown } from 'tabler-icons-react';
+import { Logout, ChevronDown } from 'tabler-icons-react';
 import { MantineLogo } from '@mantine/ds';
 import { useStyles } from './useStyles';
 import { signOut, useSession } from 'next-auth/react';
-import { Session } from 'next-auth';
+import { deleteRoomCookie } from '@/utils';
 
-interface HeaderTabsProps {
-  user: { name: string; image: string };
-}
-
-export function Header(props: HeaderTabsProps) {
+export function Header() {
   const { classes, cx } = useStyles();
   const [opened, { toggle }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
   const { data } = useSession();
+
+  const handleSignOut = () => {
+    signOut();
+    deleteRoomCookie();
+  };
 
   return (
     <div className={classes.header}>
@@ -62,29 +63,19 @@ export function Header(props: HeaderTabsProps) {
                     <Text weight={500} size='sm' sx={{ lineHeight: 1 }} mr={3}>
                       {data.user.name}
                     </Text>
-                    <ChevronDown size={12} stroke={'1.5'} />
+                    <ChevronDown size={12} />
                   </Group>
                 </UnstyledButton>
               </Menu.Target>
             ) : null}
             <Menu.Dropdown>
-              <Menu.Label>Settings</Menu.Label>
-              <Menu.Item icon={<Settings size={14} stroke={'1.5'} />}>
-                Account settings
-              </Menu.Item>
-
+              <Menu.Label>Danger zone</Menu.Label>
               <Menu.Item
-                icon={<Logout size={14} stroke={'1.5'} />}
-                onClick={() => signOut()}
+                icon={<Logout size={14} />}
+                onClick={handleSignOut}
+                color='red'
               >
                 Logout
-              </Menu.Item>
-
-              <Menu.Divider />
-
-              <Menu.Label>Danger zone</Menu.Label>
-              <Menu.Item color='red' icon={<Trash size={14} stroke={'1.5'} />}>
-                Delete account
               </Menu.Item>
             </Menu.Dropdown>
           </Menu>

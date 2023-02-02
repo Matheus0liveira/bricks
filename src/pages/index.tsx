@@ -1,8 +1,9 @@
 import { BricksContainer } from '@/components/BricksContainer';
 import { Brick } from '@/components/Brick';
-import { bricksArray } from '@/utils';
+import { bricksArray, getServerCookie } from '@/utils';
 import { Layout } from '@/components/Layout';
 import { getServerSideSession } from '@/hocs/withSession';
+import { COOKIES } from '@/shared/cookies';
 
 export default function Home() {
   return (
@@ -17,8 +18,16 @@ export default function Home() {
 }
 
 export const getServerSideProps = getServerSideSession(async (ctx) => {
-  // @ts-ignore
-  console.log({ session: ctx.session });
+  const roomKey = getServerCookie(ctx, COOKIES.ROOM_KEY);
+
+  if (!roomKey) {
+    return {
+      redirect: {
+        destination: '/room',
+        permanent: false,
+      },
+    };
+  }
 
   return {
     props: {},

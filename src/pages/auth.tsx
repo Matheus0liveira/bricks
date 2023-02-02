@@ -1,4 +1,4 @@
-import { Text, Paper, Group, Container, Alert } from '@mantine/core';
+import { Text, Paper, Container, Alert, Flex } from '@mantine/core';
 import { GoogleButton } from '@/components/SocialButtons/GoogleButton';
 import { GithubButton } from '@/components/SocialButtons/GithubButton';
 import {
@@ -35,7 +35,7 @@ export default function Auth({ providers }: AuthPageProps) {
           Welcome, login with
         </Text>
 
-        <Group grow mb='md' mt='md'>
+        <Flex mb='md' mt='md' direction='column' rowGap='md'>
           {providers
             ? Object.values(providers).map(({ id, name }) => (
                 <ProviderButton
@@ -45,7 +45,7 @@ export default function Auth({ providers }: AuthPageProps) {
                 />
               ))
             : null}
-        </Group>
+        </Flex>
       </Paper>
     </Container>
   );
