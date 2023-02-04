@@ -42,7 +42,7 @@ export default async (req: NextApiRequest, res: NextApiResponseServerIO) => {
       await playerDbClient.disconnectRoomByProviderId(player?.providerId);
 
       if (isOwner) {
-        const room = await roomDbClient.create(player.providerId);
+        const room = await roomDbClient.create(player.providerId, player.id);
 
         return res.status(201).json({ room, player });
       }

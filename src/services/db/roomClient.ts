@@ -4,9 +4,9 @@ import { PrismaClient } from '@prisma/client';
 class RoomClient {
   constructor(private readonly dbClient: PrismaClient['room']) {}
 
-  async create(providerId: string) {
+  async create(providerId: string, ownerPlayerId: string) {
     return this.dbClient.create({
-      data: { players: { connect: { providerId } } },
+      data: { players: { connect: { providerId } }, ownerPlayerId },
     });
   }
 
