@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Container,
   Avatar,
@@ -9,22 +9,29 @@ import {
   Burger,
 } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
-import { Logout, ChevronDown } from 'tabler-icons-react';
+import { Logout, ChevronDown, ArrowBack } from 'tabler-icons-react';
 import { MantineLogo } from '@mantine/ds';
 import { useStyles } from './useStyles';
 import { signOut, useSession } from 'next-auth/react';
 import { deleteClientRoomCookie } from '@/utils';
+import { useRouter } from 'next/router';
 
 export function Header() {
   const { classes, cx } = useStyles();
   const [opened, { toggle }] = useDisclosure(false);
   const [userMenuOpened, setUserMenuOpened] = useState(false);
   const { data } = useSession();
+  const router = useRouter();
 
   const handleSignOut = () => {
     signOut();
     deleteClientRoomCookie();
   };
+
+  const handleBackRoom = useCallback(() => {
+    deleteClientRoomCookie();
+    router.push('/room');
+  }, [router]);
 
   return (
     <div className={classes.header}>
@@ -69,6 +76,12 @@ export function Header() {
               </Menu.Target>
             ) : null}
             <Menu.Dropdown>
+              <Menu.Item
+                icon={<ArrowBack size={14} />}
+                onClick={handleBackRoom}
+              >
+                Enter other room
+              </Menu.Item>
               <Menu.Label>Danger zone</Menu.Label>
               <Menu.Item
                 icon={<Logout size={14} />}
