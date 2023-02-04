@@ -11,18 +11,23 @@ datasource db {
 }
 
 model Room {
-  id        String   @id @default(uuid())
-  players   Player[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id            String   @id @default(uuid())
+  players       Player[]
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+  ownerPlayerId String   @map("owner_player_id")
+
+  @@map("rooms")
 }
 
 model Player {
   id           String   @id @default(uuid())
-  providerId   String   @unique
-  providerType String
+  providerId   String   @unique @map("provider_id")
+  providerType String   @map("provider_type")
   Room         Room?    @relation(fields: [roomId], references: [id])
-  roomId       String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  roomId       String?  @map("room_id")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("players")
 }

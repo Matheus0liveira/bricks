@@ -23,6 +23,13 @@ class HttpClient {
       headers: options?.headers,
     });
   }
+  patch<T = any>(path: string, options: Request) {
+    return this.makeRequest<T>(path, {
+      method: 'PATCH',
+      body: options?.body,
+      headers: options?.headers,
+    });
+  }
 
   private async makeRequest<T = any>(
     path: string,

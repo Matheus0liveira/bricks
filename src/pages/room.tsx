@@ -14,11 +14,14 @@ import { useRouter } from 'next/router';
 import { useSocket } from '@/hooks/useSocket';
 import { SOCKET_EVENTS } from '@/types/socketEvents';
 import { useSession } from 'next-auth/react';
+import { GameService } from '@/services/game.service';
 
 export default function Room() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
+
+  const { changeRoomByPlayerId } = new GameService();
 
   const { socket } = useSocket();
   const session = useSession();
@@ -30,7 +33,7 @@ export default function Room() {
   }, []);
 
   const handleSubmit = useCallback(
-    (ev: FormEvent) => {
+    async (ev: FormEvent) => {
       ev.preventDefault();
 
       try {
@@ -38,33 +41,41 @@ export default function Room() {
 
         if (!textInputRef.current) return;
 
-        const value = textInputRef.current?.value;
+        const keyRoom = textInputRef.current?.value;
 
-        if (!value) return textInputRef.current.focus();
+        if (!keyRoom) return textInputRef.current.focus();
 
-        if (!UUID_REGEX.test(value)) throw new Error('Code not valid');
+        if (!UUID_REGEX.test(keyRoom)) throw new Error('Code not valid');
 
-        createClientRoomCookie({ value });
+        createClientRoomCookie({ value: keyRoom });
 
-        socket?.emit(SOCKET_EVENTS.ENTER_ROOM, {
-          playerId: session.data.user.id,
-          keyRoom: value,
-        });
+        await changeRoomByPlayerId({ playerId: session.data.user.id, keyRoom });
+
+        // socket?.emit(SOCKET_EVENTS.ENTER_ROOM, {
+        //   playerId: session.data.user.id,
+        //   keyRoom: value,
+        // });
 
         setErrorMessage('');
-        router.push('/');
+        // router.push('/');
       } catch (e) {
         if (e instanceof Error) setErrorMessage(e.message);
       }
     },
-    [router, session.data?.user, socket]
+    [changeRoomByPlayerId, session.data?.user]
   );
 
-  const handleCreateNewRoom = useCallback(() => {
-    createClientRoomCookie({ isNewCookie: true });
+  const handleCreateNewRoom = useCallback(async () => {
     setErrorMessage('');
+    if (!session.data) return;
+
+    const { room } = await changeRoomByPlayerId({
+      playerId: session.data.user.id,
+      isOwner: true,
+    });
+    createClientRoomCookie({ value: room.id });
     router.push('/');
-  }, [router]);
+  }, [changeRoomByPlayerId, router, session.data]);
 
   return (
     <Container maw={450} mt={120}>

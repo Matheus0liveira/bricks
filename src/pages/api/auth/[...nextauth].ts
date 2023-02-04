@@ -48,7 +48,7 @@ export const authOptions: AuthOptions = {
 
       return Promise.resolve(true);
     },
-    jwt: async ({ token, user, account, profile, isNewUser }) => {
+    jwt: async ({ token, user }) => {
       user && (token.id = user.id);
       return Promise.resolve(token);
     },
