@@ -10,8 +10,7 @@ import {
   JWT_SECRET,
   NODE_ENV,
 } from '@/shared/constants';
-import prismaClient from '@/lib/prismadb';
-import { PrismaClient } from '@prisma/client';
+import { playerDbClient } from '@/services/db/playerClient';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -27,24 +26,14 @@ export const authOptions: AuthOptions = {
 
   callbacks: {
     async signIn({ user, account }) {
-      let player = await prismaClient.player.findUnique({
-        where: { providerId: user.id },
-      });
-
-      console.log({ player });
+      let player = await playerDbClient.find(user.id);
 
       if (!player) {
-        console.log('IF');
-
-        player = await prismaClient.player.create({
-          data: {
-            providerId: account?.providerAccountId || '',
-            providerType: account?.provider || '',
-          },
-        });
+        player = await playerDbClient.create(
+          account?.providerAccountId || '',
+          (account?.provider as 'google') || 'google'
+        );
       }
-
-      console.log('OK');
 
       return Promise.resolve(true);
     },
@@ -52,7 +41,7 @@ export const authOptions: AuthOptions = {
       user && (token.id = user.id);
       return Promise.resolve(token);
     },
-    session: async ({ session, user, token }) => {
+    session: async ({ session, token }) => {
       if (typeof token.id === 'string') {
         session.user.id = token.id;
       }
@@ -61,7 +50,7 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  // debug: NODE_ENV === 'development',
+  debug: NODE_ENV === 'development',
   secret: AUTH_SECRET,
   jwt: {
     secret: JWT_SECRET,

@@ -4,11 +4,9 @@ import { PrismaClient } from '@prisma/client';
 class PlayerClient {
   constructor(private readonly dbClient: PrismaClient['player']) {}
 
-  // async create(providerId: string) {
-  //   return this.dbClient.findUnique({
-  //     where: { providerId },
-  //   });
-  // }
+  async create(providerId: string, providerType: 'google' | 'github') {
+    return this.dbClient.create({ data: { providerId, providerType } });
+  }
   async disconnectRoomByProviderId(providerId: string) {
     return this.dbClient.update({
       where: { providerId },
