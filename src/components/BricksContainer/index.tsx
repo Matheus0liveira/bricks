@@ -1,5 +1,7 @@
+import { useSocket } from '@/hooks/useSocket';
 import { useGameStore } from '@/stores/game.store';
-import { getClientRoomCookie, TOTAL_COLS, TOTAL_ROWS } from '@/utils';
+import { SOCKET_EVENTS } from '@/types/socketEvents';
+import { TOTAL_COLS, TOTAL_ROWS } from '@/utils';
 import {
   Flex as MantineFlex,
   Container,
@@ -10,6 +12,8 @@ import {
   Tooltip,
   ActionIcon,
 } from '@mantine/core';
+import { Session } from 'next-auth';
+import { useSession } from 'next-auth/react';
 import {
   memo,
   PropsWithChildren,
@@ -17,6 +21,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import { Check, Copy } from 'tabler-icons-react';
 import { ToggleStatus } from '../ToggleStatusButton';
@@ -36,7 +41,23 @@ type CheckEvent = () => {
 
 type KeyFuncs = Record<KeyVariables, (c: CheckEvent) => void | false>;
 
-export const BricksContainer = ({ children }: PropsWithChildren) => {
+type BricksContainerProps = {
+  keyRoom: string;
+} & PropsWithChildren;
+
+type Player = {
+  position: number;
+  id: string;
+};
+
+export const BricksContainer = ({
+  children,
+  keyRoom,
+}: BricksContainerProps) => {
+  const [players, setPlayers] = useState<Player[]>([]);
+
+  console.log(players);
+
   const flexRef = useRef<HTMLDivElement>(null);
   const handleChangeSelect = useGameStore((s) => s.handleChangeSelect);
   const currentPointPosition = useGameStore((s) => s.currentPointPosition);
@@ -46,6 +67,34 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
   const status = useGameStore((s) => s.status);
   const toggleStatus = useGameStore((s) => s.toggleStatus);
   const currentSelect = useGameStore((s) => s.currentSelect);
+
+  const session = useSession();
+
+  const { socket } = useSocket((s) => {
+    s.on(SOCKET_EVENTS.INSERT_PLAYER_ON_GAME, ({ playerId, keyRoom: room }) => {
+      if (keyRoom !== room) return;
+
+      console.log('OPA OLHA ELE AI');
+
+      setPlayers((state) => [
+        ...state,
+        { id: playerId, position: players.length + 1 },
+      ]);
+    });
+
+    s.on(SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM, (props) => {
+      console.log({ props, keyRoom });
+      if (props.keyRoom !== keyRoom) return;
+
+      setPlayers((state) =>
+        state.map((player) =>
+          player.id === props.id ? { ...player, id: props.id } : player
+        )
+      );
+
+      console.log('updated');
+    });
+  });
 
   const checkEvent = useCallback(() => {
     if (!flexRef.current)
@@ -77,10 +126,11 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
 
     return { isUpRow, isDownRow, isLeftColumn, isRightColumn };
   }, []);
-
+  console.log('sockjet', socket);
   const handleUpdateItem = useCallback(
-    (type: 'up' | 'down' | 'left' | 'right') => handleChangeSelect(type),
-    [handleChangeSelect]
+    (type: 'up' | 'down' | 'left' | 'right') =>
+      handleChangeSelect(session.data!, socket!, keyRoom)(type),
+    [handleChangeSelect, session, socket, keyRoom]
   );
 
   const keyFuncs = useMemo<KeyFuncs>(() => {
@@ -135,7 +185,7 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
     handleChangePointPosition(generatePointNumber());
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status]);
+  }, [status, session]);
 
   return (
     <MyContainer>
@@ -148,8 +198,8 @@ export const BricksContainer = ({ children }: PropsWithChildren) => {
         <ToggleStatus handleChangeStatus={handleChangeStatus} />
         <MantineFlex direction='column'>
           <Code display='flex' sx={{ gap: '4px', alignItems: 'center' }}>
-            {getClientRoomCookie()}
-            <MyCopyButton />
+            {keyRoom}
+            <MyCopyButton keyRoom={keyRoom} />
           </Code>
         </MantineFlex>
       </Header>
@@ -172,8 +222,8 @@ const MyContainer = memo(({ children }: PropsWithChildren) => (
   <Container maw={453}>{children}</Container>
 ));
 
-const MyCopyButton = memo(() => (
-  <CopyButton value={getClientRoomCookie()} timeout={2000}>
+const MyCopyButton = memo(({ keyRoom }: { keyRoom: string }) => (
+  <CopyButton value={keyRoom} timeout={2000}>
     {({ copied, copy }) => (
       <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position='right'>
         <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>

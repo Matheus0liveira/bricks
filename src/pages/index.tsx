@@ -2,13 +2,18 @@ import { BricksContainer } from '@/components/BricksContainer';
 import { Brick } from '@/components/Brick';
 import { bricksArray, getServerCookie } from '@/utils';
 import { Layout } from '@/components/Layout';
-import { getServerSideSession } from '@/hocs/withSession';
+import { CtxWithSession, getServerSideSession } from '@/hocs/withSession';
 import { COOKIES } from '@/shared/cookies';
+import { Session } from 'next-auth';
 
-export default function Home() {
+type HomeProps = {
+  keyRoom: string;
+};
+
+export default function Home({ keyRoom }: HomeProps) {
   return (
     <Layout>
-      <BricksContainer>
+      <BricksContainer keyRoom={keyRoom}>
         {bricksArray.map((i, index) => (
           <Brick key={i} index={index} />
         ))}
@@ -18,9 +23,9 @@ export default function Home() {
 }
 
 export const getServerSideProps = getServerSideSession(async (ctx) => {
-  const roomKey = getServerCookie(ctx, COOKIES.ROOM_KEY);
+  const keyRoom = getServerCookie(ctx, COOKIES.KEY_ROOM);
 
-  if (!roomKey) {
+  if (!keyRoom) {
     return {
       redirect: {
         destination: '/room',
@@ -30,6 +35,8 @@ export const getServerSideProps = getServerSideSession(async (ctx) => {
   }
 
   return {
-    props: {},
+    props: {
+      keyRoom,
+    },
   };
 });

@@ -8,16 +8,20 @@ import {
   Container,
   Group,
 } from '@mantine/core';
-import { parseCookies, setCookie } from 'nookies';
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
-import crypto from 'crypto';
 import { createClientRoomCookie } from '@/utils';
 import { useRouter } from 'next/router';
+import { useSocket } from '@/hooks/useSocket';
+import { SOCKET_EVENTS } from '@/types/socketEvents';
+import { useSession } from 'next-auth/react';
 
 export default function Room() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
+
+  const { socket } = useSocket();
+  const session = useSession();
 
   useEffect(() => {
     if (!textInputRef.current) return;
@@ -30,6 +34,8 @@ export default function Room() {
       ev.preventDefault();
 
       try {
+        if (!session.data?.user) throw Error('Session not found');
+
         if (!textInputRef.current) return;
 
         const value = textInputRef.current?.value;
@@ -40,13 +46,18 @@ export default function Room() {
 
         createClientRoomCookie({ value });
 
+        socket?.emit(SOCKET_EVENTS.ENTER_ROOM, {
+          playerId: session.data.user.id,
+          keyRoom: value,
+        });
+
         setErrorMessage('');
         router.push('/');
       } catch (e) {
         if (e instanceof Error) setErrorMessage(e.message);
       }
     },
-    [router]
+    [router, session.data?.user, socket]
   );
 
   const handleCreateNewRoom = useCallback(() => {

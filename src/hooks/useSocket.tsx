@@ -1,24 +1,28 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { connect, Socket } from 'socket.io-client';
 
 type CallBack = (socket: Socket) => void;
 
-export const useSocket = (cb: CallBack) => {
+export const useSocket = (cb?: CallBack) => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
   useEffect((): any => {
     // connect to socket server
-    const socket = connect('http://localhost:3000', {
+
+    const s = connect('http://localhost:3000', {
       path: '/api/socketio',
     });
+    setSocket(s);
 
     // log socket connection
-    socket.on('connect', () => {
-      console.log('SOCKET CONNECTED!', socket.id);
+    s.on('connect', () => {
+      console.log('SOCKET CONNECTED!', s.id);
+      cb?.(s);
     });
-
-    cb(socket);
-
     // socket disconnet onUnmount if exists
     if (socket) return () => socket.disconnect();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  return { socket };
 };

@@ -6,14 +6,14 @@ import {
   GetServerSidePropsResult,
 } from 'next';
 
-type Ctx = {
+export type CtxWithSession = {
   session: Session;
 } & GetServerSidePropsContext;
 
 export function getServerSideSession<P extends Record<string, unknown>>(
   fn: GetServerSideProps<P>
 ) {
-  return async (ctx: Ctx): Promise<GetServerSidePropsResult<P>> => {
+  return async (ctx: CtxWithSession): Promise<GetServerSidePropsResult<P>> => {
     const session = await getServerSession(ctx.req, ctx.res, authOptions);
 
     if (!session) {

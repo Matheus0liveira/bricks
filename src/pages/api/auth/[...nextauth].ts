@@ -22,6 +22,19 @@ export const authOptions: AuthOptions = {
       clientSecret: GITHUB_CLIENT_SECRET_ID,
     }),
   ],
+  callbacks: {
+    jwt: async ({ token, user, account, profile, isNewUser }) => {
+      user && (token.id = user.id);
+      return Promise.resolve(token);
+    },
+    session: async ({ session, user, token }) => {
+      if (typeof token.id === 'string') {
+        session.user.id = token.id;
+      }
+
+      return Promise.resolve(session);
+    },
+  },
 
   debug: NODE_ENV === 'development',
   secret: AUTH_SECRET,

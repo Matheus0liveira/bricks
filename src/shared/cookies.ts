@@ -1,3 +1,3 @@
 export enum COOKIES {
-  ROOM_KEY = 'room-key',
+  KEY_ROOM = 'room-key',
 }
