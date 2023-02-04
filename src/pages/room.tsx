@@ -15,11 +15,14 @@ import { useSocket } from '@/hooks/useSocket';
 import { SOCKET_EVENTS } from '@/types/socketEvents';
 import { useSession } from 'next-auth/react';
 import { GameService } from '@/services/game.service';
+import { useLoading } from '@/stores/loading';
 
 export default function Room() {
   const router = useRouter();
   const [errorMessage, setErrorMessage] = useState('');
   const textInputRef = useRef<HTMLInputElement>(null);
+  const showLoading = useLoading((state) => state.showLoading);
+  const hideLoading = useLoading((state) => state.hideLoading);
 
   const { changeRoomByPlayerId } = new GameService();
 
@@ -34,6 +37,7 @@ export default function Room() {
 
   const handleSubmit = useCallback(
     async (ev: FormEvent) => {
+      showLoading();
       ev.preventDefault();
 
       try {
@@ -57,25 +61,34 @@ export default function Room() {
         // });
 
         setErrorMessage('');
-        // router.push('/');
+        hideLoading();
+        router.push('/');
       } catch (e) {
         if (e instanceof Error) setErrorMessage(e.message);
+      } finally {
       }
     },
-    [changeRoomByPlayerId, session.data?.user]
+    [changeRoomByPlayerId, hideLoading, session.data?.user, showLoading, router]
   );
 
   const handleCreateNewRoom = useCallback(async () => {
-    setErrorMessage('');
-    if (!session.data) return;
+    try {
+      showLoading();
+      setErrorMessage('');
+      if (!session.data) return;
 
-    const { room } = await changeRoomByPlayerId({
-      playerId: session.data.user.id,
-      isOwner: true,
-    });
-    createClientRoomCookie({ value: room.id });
-    router.push('/');
-  }, [changeRoomByPlayerId, router, session.data]);
+      const { room } = await changeRoomByPlayerId({
+        playerId: session.data.user.id,
+        isOwner: true,
+      });
+      createClientRoomCookie({ value: room.id });
+      hideLoading();
+      router.push('/');
+    } catch (e) {
+      if (e instanceof Error) setErrorMessage(e.message);
+    } finally {
+    }
+  }, [changeRoomByPlayerId, hideLoading, router, session.data, showLoading]);
 
   return (
     <Container maw={450} mt={120}>
