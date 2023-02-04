@@ -10,6 +10,8 @@ import {
   JWT_SECRET,
   NODE_ENV,
 } from '@/shared/constants';
+import prismaClient from '@/lib/prismadb';
+import { PrismaClient } from '@prisma/client';
 
 export const authOptions: AuthOptions = {
   providers: [
@@ -22,7 +24,30 @@ export const authOptions: AuthOptions = {
       clientSecret: GITHUB_CLIENT_SECRET_ID,
     }),
   ],
+
   callbacks: {
+    async signIn({ user, account }) {
+      let player = await prismaClient.player.findUnique({
+        where: { providerId: user.id },
+      });
+
+      console.log({ player });
+
+      if (!player) {
+        console.log('IF');
+
+        player = await prismaClient.player.create({
+          data: {
+            providerId: account?.providerAccountId || '',
+            providerType: account?.provider || '',
+          },
+        });
+      }
+
+      console.log('OK');
+
+      return Promise.resolve(true);
+    },
     jwt: async ({ token, user, account, profile, isNewUser }) => {
       user && (token.id = user.id);
       return Promise.resolve(token);
@@ -36,7 +61,7 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  debug: NODE_ENV === 'development',
+  // debug: NODE_ENV === 'development',
   secret: AUTH_SECRET,
   jwt: {
     secret: JWT_SECRET,
