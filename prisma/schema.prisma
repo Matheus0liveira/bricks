@@ -22,6 +22,7 @@ model Room {
 
 model Player {
   id           String   @id @default(uuid())
+  name         String   @default("")
   providerId   String   @unique @map("provider_id")
   providerType String   @map("provider_type")
   Room         Room?    @relation(fields: [roomId], references: [id])
