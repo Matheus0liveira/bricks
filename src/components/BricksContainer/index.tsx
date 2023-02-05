@@ -55,8 +55,6 @@ export const BricksContainer = ({
     left: 0,
   });
 
-  console.log({ players });
-
   socket?.on(
     SOCKET_EVENTS.INSERT_PLAYER_ON_GAME,
     ({ playerId, keyRoom: roomId, players }) => {
@@ -65,7 +63,6 @@ export const BricksContainer = ({
       setPlayers(
         players.map((p: Player) => ({
           id: (p as any).providerId,
-          // position: p.position,
         }))
       );
     }
@@ -88,7 +85,6 @@ export const BricksContainer = ({
 
   const handleEmitEventByPosition = useCallback(
     (position: { top: `${string}px`; left: `${string}px` }) => {
-      console.log({ emited: position });
       socket?.emit(SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM, {
         keyRoom,
         playerId: session.data?.user.id,
@@ -207,7 +203,6 @@ type PlayerProps = {
 };
 
 const Player = ({ forwardRef, top, left, enemy = false }: PlayerProps) => {
-  console.log(top, left);
   return (
     <Grid.Col
       span={1}
