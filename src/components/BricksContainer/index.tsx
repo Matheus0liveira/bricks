@@ -9,9 +9,25 @@ import {
   useMantineTheme,
   Stack,
   Paper,
+  Group,
+  Text,
+  Badge,
+  ScrollArea,
+  Table,
+  Avatar,
 } from '@mantine/core';
+import { IconPencil, IconTrash } from '@tabler/icons';
 import { useSession } from 'next-auth/react';
-import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
+import {
+  memo,
+  RefObject,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useId,
+} from 'react';
 
 // const tree = [23, 24, 25, 26, 36, 46, 45, 44, 43, 56, 66, 65, 64, 63];
 // const two = [23, 24, 25, 26, 36, 46, 45, 44, 43, 53, 63, 64, 65, 66];
@@ -34,6 +50,7 @@ type BricksContainerProps = {
 type Player = {
   position?: { left: number; top: number };
   id: string;
+  name: string;
 };
 
 export const BricksContainer = ({
@@ -70,14 +87,12 @@ export const BricksContainer = ({
 
   socket?.on(
     SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM,
-    ({ position, keyRoom: roomId, playerId }) => {
+    ({ position, keyRoom: roomId, playerId, name }) => {
       if (roomId !== keyRoom) return;
-
-      console.log('EOPA EOPA', position);
 
       setPlayers((prevState) =>
         prevState.map((player) =>
-          player.id === playerId ? { position, id: playerId } : player
+          player.id === playerId ? { name, position, id: playerId } : player
         )
       );
     }
@@ -88,10 +103,11 @@ export const BricksContainer = ({
       socket?.emit(SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM, {
         keyRoom,
         playerId: session.data?.user.id,
+        name: session.data?.user.name,
         position,
       });
     },
-    [keyRoom, session.data?.user.id, socket]
+    [keyRoom, session.data?.user.id, session.data?.user.name, socket]
   );
 
   useEffect(() => {
@@ -156,6 +172,24 @@ export const BricksContainer = ({
     return () => removeEventListener('keydown', keyDownEvent);
   }, [handleEmitEventByPosition, keyRoom, session.data, socket]);
 
+  const allPlayers = useMemo(() => {
+    const user = session.data?.user;
+
+    const loggedPlayer = {
+      id: user?.id || '',
+      name: user?.name || '',
+    };
+
+    const guestPlayers = players.map((player) => ({
+      id: player.id,
+      name: player.name,
+    }));
+
+    guestPlayers.push(loggedPlayer);
+
+    return guestPlayers;
+  }, [players, session.data]);
+
   return (
     <Container size='xl'>
       <Grid columns={12} justify='space-between'>
@@ -178,11 +212,14 @@ export const BricksContainer = ({
         </Grid.Col>
         <Grid.Col span={5}>
           <Stack>
-            <Skeleton
-              height={SECONDARY_COL_HEIGHT}
-              radius='md'
-              animate={false}
-            />
+            <Paper bg='gray' h={148}>
+              <UsersTable
+                data={allPlayers.map((player) => ({
+                  name: player.name,
+                }))}
+              />
+            </Paper>
+
             <Skeleton
               height={SECONDARY_COL_HEIGHT}
               animate={false}
@@ -228,3 +265,46 @@ const Player = ({ forwardRef, top, left, enemy = false }: PlayerProps) => {
     </Grid.Col>
   );
 };
+
+interface UsersTableProps {
+  data: {
+    name: string;
+  }[];
+}
+
+export const UsersTable = memo(({ data }: UsersTableProps) => {
+  const getShortName = (name: string) => {
+    const firstLetter = name?.charAt(0);
+    const lastLetter = name?.split(' ')[1]?.charAt(0);
+    return `${firstLetter}${lastLetter}`;
+  };
+  return (
+    <ScrollArea style={{ height: '100%' }}>
+      <Table verticalSpacing='sm'>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Points</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {data.map(({ name }) => (
+            <tr key={name}>
+              <td>
+                <Group spacing='sm'>
+                  <Avatar color='cyan' radius='xl'>
+                    {name ? getShortName(name) : null}
+                  </Avatar>
+                  <Text size='sm' weight={500}>
+                    {name}
+                  </Text>
+                </Group>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </Table>
+    </ScrollArea>
+  );
+});

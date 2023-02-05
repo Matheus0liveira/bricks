@@ -1,11 +1,8 @@
 import { BricksContainer } from '@/components/BricksContainer';
-import { Brick } from '@/components/Brick';
-import { bricksArray, getServerCookie } from '@/utils';
+import { getServerCookie } from '@/utils';
 import { Layout } from '@/components/Layout';
 import { CtxWithSession, getServerSideSession } from '@/hocs/withSession';
 import { COOKIES } from '@/shared/cookies';
-import { SOCKET_EVENTS } from '@/types/socketEvents';
-import { useSocketStore } from '@/stores/socket.store';
 import { GameService } from '@/services/game.service';
 import { Player } from '@prisma/client';
 
@@ -19,7 +16,7 @@ export default function Home({ keyRoom, players }: HomeProps) {
     <Layout>
       <BricksContainer
         keyRoom={keyRoom}
-        players={players.map((p) => ({ id: p.providerId }))}
+        players={players.map((p) => ({ id: p.providerId, name: p.name }))}
       />
     </Layout>
   );

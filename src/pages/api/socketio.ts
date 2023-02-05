@@ -23,7 +23,6 @@ export default async (req: NextApiRequest, res: NextApiResponseServerIO) => {
 
     io.sockets.on('connection', function (socket) {
       socket.on(SOCKET_EVENTS.ENTER_ROOM, async ({ playerId, keyRoom }) => {
-        console.log('ENTER');
         const players = await playerDbClient.findAllPlayersByRoomId(keyRoom);
 
         socket.broadcast.emit(SOCKET_EVENTS.INSERT_PLAYER_ON_GAME, {
@@ -34,14 +33,14 @@ export default async (req: NextApiRequest, res: NextApiResponseServerIO) => {
       });
       socket.on(
         SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM,
-        ({ keyRoom, position, playerId }) => {
-          console.log({ keyRoom, position, playerId });
+        ({ keyRoom, position, playerId, name }) => {
           socket.broadcast.emit(
             SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM,
             {
               position,
               keyRoom,
               playerId,
+              name,
             }
           );
         }
