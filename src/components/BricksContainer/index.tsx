@@ -11,14 +11,7 @@ import {
   Paper,
 } from '@mantine/core';
 import { useSession } from 'next-auth/react';
-import {
-  PropsWithChildren,
-  RefObject,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
+import { RefObject, useCallback, useEffect, useRef, useState } from 'react';
 
 // const tree = [23, 24, 25, 26, 36, 46, 45, 44, 43, 56, 66, 65, 64, 63];
 // const two = [23, 24, 25, 26, 36, 46, 45, 44, 43, 53, 63, 64, 65, 66];
@@ -33,12 +26,10 @@ type CheckEvent = () => {
   isRightColumn: boolean;
 };
 
-type KeyFuncs = Record<KeyVariables, (c: CheckEvent) => void | false>;
-
 type BricksContainerProps = {
   keyRoom: string;
   players: Player[];
-} & PropsWithChildren;
+};
 
 type Player = {
   position?: { left: number; top: number };
@@ -46,7 +37,6 @@ type Player = {
 };
 
 export const BricksContainer = ({
-  children,
   keyRoom,
   players: defaultPlayers,
 }: BricksContainerProps) => {

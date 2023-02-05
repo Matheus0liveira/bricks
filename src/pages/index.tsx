@@ -20,11 +20,7 @@ export default function Home({ keyRoom, players }: HomeProps) {
       <BricksContainer
         keyRoom={keyRoom}
         players={players.map((p) => ({ id: p.providerId }))}
-      >
-        {bricksArray.map((i, index) => (
-          <Brick key={i} index={index} />
-        ))}
-      </BricksContainer>
+      />
     </Layout>
   );
 }
