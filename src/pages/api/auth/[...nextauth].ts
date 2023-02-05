@@ -50,7 +50,7 @@ export const authOptions: AuthOptions = {
     },
   },
 
-  debug: NODE_ENV === 'development',
+  // debug: NODE_ENV === 'development',
   secret: AUTH_SECRET,
   jwt: {
     secret: JWT_SECRET,

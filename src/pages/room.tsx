@@ -11,11 +11,11 @@ import {
 import { FormEvent, useCallback, useEffect, useRef, useState } from 'react';
 import { createClientRoomCookie } from '@/utils';
 import { useRouter } from 'next/router';
-import { useSocket } from '@/hooks/useSocket';
 import { SOCKET_EVENTS } from '@/types/socketEvents';
 import { useSession } from 'next-auth/react';
 import { GameService } from '@/services/game.service';
 import { useLoading } from '@/stores/loading';
+import { useSocketStore } from '@/stores/socket.store';
 
 export default function Room() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function Room() {
 
   const { changeRoomByPlayerId } = new GameService();
 
-  const { socket } = useSocket();
+  const socket = useSocketStore((state) => state.socket);
   const session = useSession();
 
   useEffect(() => {
@@ -34,6 +34,13 @@ export default function Room() {
 
     textInputRef.current.focus();
   }, []);
+
+  const handleEmitPlayerEnterRoom = useCallback(
+    (playerId: string, keyRoom: string) => {
+      socket?.emit(SOCKET_EVENTS.ENTER_ROOM, { playerId, keyRoom });
+    },
+    [socket]
+  );
 
   const handleSubmit = useCallback(
     async (ev: FormEvent) => {
@@ -55,20 +62,24 @@ export default function Room() {
 
         await changeRoomByPlayerId({ playerId: session.data.user.id, keyRoom });
 
-        // socket?.emit(SOCKET_EVENTS.ENTER_ROOM, {
-        //   playerId: session.data.user.id,
-        //   keyRoom: value,
-        // });
-
+        handleEmitPlayerEnterRoom(session.data.user.id, keyRoom);
         setErrorMessage('');
-        hideLoading();
+
         router.push('/');
       } catch (e) {
         if (e instanceof Error) setErrorMessage(e.message);
       } finally {
+        hideLoading();
       }
     },
-    [changeRoomByPlayerId, hideLoading, session.data?.user, showLoading, router]
+    [
+      showLoading,
+      session.data?.user,
+      changeRoomByPlayerId,
+      handleEmitPlayerEnterRoom,
+      router,
+      hideLoading,
+    ]
   );
 
   const handleCreateNewRoom = useCallback(async () => {
@@ -82,13 +93,21 @@ export default function Room() {
         isOwner: true,
       });
       createClientRoomCookie({ value: room.id });
-      hideLoading();
+      handleEmitPlayerEnterRoom(session.data.user.id, room.id);
       router.push('/');
     } catch (e) {
       if (e instanceof Error) setErrorMessage(e.message);
     } finally {
+      hideLoading();
     }
-  }, [changeRoomByPlayerId, hideLoading, router, session.data, showLoading]);
+  }, [
+    changeRoomByPlayerId,
+    handleEmitPlayerEnterRoom,
+    hideLoading,
+    router,
+    session.data,
+    showLoading,
+  ]);
 
   return (
     <Container maw={450} mt={120}>

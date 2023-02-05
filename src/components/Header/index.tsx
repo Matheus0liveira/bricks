@@ -35,7 +35,7 @@ export function Header() {
 
   return (
     <div className={classes.header}>
-      <Container className={classes.mainSection}>
+      <Container size='xl' pb={8}>
         <Group position='apart'>
           <MantineLogo size={28} />
 

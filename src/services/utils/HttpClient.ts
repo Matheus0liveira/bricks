@@ -9,8 +9,8 @@ type Request = Omit<RequestInit, 'body'> & {
 class HttpClient {
   constructor(private readonly baseURL: string) {}
 
-  get(path: string, options: Request) {
-    return this.makeRequest(path, {
+  get<T = any>(path: string, options?: Request) {
+    return this.makeRequest<T>(path, {
       method: 'GET',
       headers: options?.headers,
     });

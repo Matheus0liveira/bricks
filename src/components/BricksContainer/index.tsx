@@ -1,34 +1,28 @@
-import { useSocket } from '@/hooks/useSocket';
-import { useGameStore } from '@/stores/game.store';
+// import { useSocket } from '@/hooks/useSocket';
+import { useSocketStore } from '@/stores/socket.store';
 import { SOCKET_EVENTS } from '@/types/socketEvents';
-import { TOTAL_COLS, TOTAL_ROWS } from '@/utils';
+import { bricksArray } from '@/utils';
 import {
-  Flex as MantineFlex,
   Container,
-  Badge,
-  Header,
-  Code,
-  CopyButton,
-  Tooltip,
-  ActionIcon,
+  Skeleton,
+  Grid,
+  useMantineTheme,
+  Stack,
+  Paper,
 } from '@mantine/core';
-import { Session } from 'next-auth';
 import { useSession } from 'next-auth/react';
 import {
-  memo,
   PropsWithChildren,
+  RefObject,
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
 } from 'react';
-import { Check, Copy } from 'tabler-icons-react';
-import { ToggleStatus } from '../ToggleStatusButton';
 
-const tree = [23, 24, 25, 26, 36, 46, 45, 44, 43, 56, 66, 65, 64, 63];
-const two = [23, 24, 25, 26, 36, 46, 45, 44, 43, 53, 63, 64, 65, 66];
-const one = [25, 35, 45, 55, 65];
+// const tree = [23, 24, 25, 26, 36, 46, 45, 44, 43, 56, 66, 65, 64, 63];
+// const two = [23, 24, 25, 26, 36, 46, 45, 44, 43, 53, 63, 64, 65, 66];
+// const one = [25, 35, 45, 55, 65];
 
 type KeyVariables = 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft';
 
@@ -43,104 +37,76 @@ type KeyFuncs = Record<KeyVariables, (c: CheckEvent) => void | false>;
 
 type BricksContainerProps = {
   keyRoom: string;
+  players: Player[];
 } & PropsWithChildren;
 
 type Player = {
-  position: number;
+  position?: { left: number; top: number };
   id: string;
 };
 
 export const BricksContainer = ({
   children,
   keyRoom,
+  players: defaultPlayers,
 }: BricksContainerProps) => {
-  const [players, setPlayers] = useState<Player[]>([]);
-
-  console.log(players);
-
-  const flexRef = useRef<HTMLDivElement>(null);
-  const handleChangeSelect = useGameStore((s) => s.handleChangeSelect);
-  const currentPointPosition = useGameStore((s) => s.currentPointPosition);
-  const handleChangePointPosition = useGameStore(
-    (s) => s.handleChangePointPosition
-  );
-  const status = useGameStore((s) => s.status);
-  const toggleStatus = useGameStore((s) => s.toggleStatus);
-  const currentSelect = useGameStore((s) => s.currentSelect);
+  const [players, setPlayers] = useState<Player[]>(defaultPlayers);
 
   const session = useSession();
+  const socket = useSocketStore((s) => s.socket);
 
-  const { socket } = useSocket((s) => {
-    s.on(SOCKET_EVENTS.INSERT_PLAYER_ON_GAME, ({ playerId, keyRoom: room }) => {
-      if (keyRoom !== room) return;
+  const PRIMARY_COL_HEIGHT = 300;
+  const theme = useMantineTheme();
+  const SECONDARY_COL_HEIGHT = PRIMARY_COL_HEIGHT / 2 - theme.spacing.md / 2;
 
-      console.log('OPA OLHA ELE AI');
-
-      setPlayers((state) => [
-        ...state,
-        { id: playerId, position: players.length + 1 },
-      ]);
-    });
-
-    s.on(SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM, (props) => {
-      console.log({ props, keyRoom });
-      if (props.keyRoom !== keyRoom) return;
-
-      setPlayers((state) =>
-        state.map((player) =>
-          player.id === props.id ? { ...player, id: props.id } : player
-        )
-      );
-
-      console.log('updated');
-    });
+  const playerRef = useRef<HTMLDivElement>(null);
+  const playerPositionRef = useRef<{ top: number; left: number }>({
+    top: 0,
+    left: 0,
   });
 
-  const checkEvent = useCallback(() => {
-    if (!flexRef.current)
-      return {
-        isUpRow: false,
-        isDownRow: false,
-        isLeftColumn: false,
-        isRightColumn: false,
-      };
+  console.log({ players });
 
-    const grid = flexRef.current;
+  socket?.on(
+    SOCKET_EVENTS.INSERT_PLAYER_ON_GAME,
+    ({ playerId, keyRoom: roomId, players }) => {
+      if (keyRoom !== roomId) return;
 
-    const active = grid.querySelector('.active');
-    const activeIndex = Array.from(grid.children).indexOf(active as Element);
-
-    const gridChildren = Array.from(grid.children);
-    const gridNum = gridChildren.length;
-    const baseOffset = (gridChildren[0] as any).offsetTop;
-    const breakIndex = gridChildren.findIndex(
-      (item) => (item as any).offsetTop > baseOffset
-    );
-    const numPerRow = breakIndex === -1 ? gridNum : breakIndex;
-
-    const isUpRow = activeIndex <= numPerRow - 1;
-    const isDownRow = activeIndex >= gridNum - numPerRow;
-    const isLeftColumn = activeIndex % numPerRow === 0;
-    const isRightColumn =
-      activeIndex % numPerRow === numPerRow - 1 || activeIndex === gridNum - 1;
-
-    return { isUpRow, isDownRow, isLeftColumn, isRightColumn };
-  }, []);
-  console.log('sockjet', socket);
-  const handleUpdateItem = useCallback(
-    (type: 'up' | 'down' | 'left' | 'right') =>
-      handleChangeSelect(session.data!, socket!, keyRoom)(type),
-    [handleChangeSelect, session, socket, keyRoom]
+      setPlayers(
+        players.map((p: Player) => ({
+          id: (p as any).providerId,
+          // position: p.position,
+        }))
+      );
+    }
   );
 
-  const keyFuncs = useMemo<KeyFuncs>(() => {
-    return {
-      ArrowUp: (c) => !c().isUpRow && handleUpdateItem('up'),
-      ArrowDown: (c) => !c().isDownRow && handleUpdateItem('down'),
-      ArrowLeft: (c) => !c().isLeftColumn && handleUpdateItem('left'),
-      ArrowRight: (c) => !c().isRightColumn && handleUpdateItem('right'),
-    };
-  }, [handleUpdateItem]);
+  socket?.on(
+    SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM,
+    ({ position, keyRoom: roomId, playerId }) => {
+      if (roomId !== keyRoom) return;
+
+      console.log('EOPA EOPA', position);
+
+      setPlayers((prevState) =>
+        prevState.map((player) =>
+          player.id === playerId ? { position, id: playerId } : player
+        )
+      );
+    }
+  );
+
+  const handleEmitEventByPosition = useCallback(
+    (position: { top: `${string}px`; left: `${string}px` }) => {
+      console.log({ emited: position });
+      socket?.emit(SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM, {
+        keyRoom,
+        playerId: session.data?.user.id,
+        position,
+      });
+    },
+    [keyRoom, session.data?.user.id, socket]
+  );
 
   useEffect(() => {
     if (typeof document === 'undefined') return;
@@ -148,88 +114,132 @@ export const BricksContainer = ({
     const keyDownEvent = (ev: globalThis.KeyboardEvent) => {
       const { key } = ev;
 
-      if (!['ArrowUp', 'ArrowRight', 'ArrowDown', 'ArrowLeft'].includes(key))
-        return;
+      /// width:63.55, padding: 8
+      const boxMT = 63.55 + 8;
+      if (!playerRef.current || !playerPositionRef.current) return;
 
-      keyFuncs[key as KeyVariables](checkEvent);
+      const playerPosition = playerPositionRef.current;
+
+      const playerStyle = getComputedStyle(playerRef.current);
+
+      const playerTop = Number(playerStyle.top.replace('px', ''));
+      const playerLeft = Number(playerStyle.left.replace('px', ''));
+
+      if (key === 'ArrowUp' && playerPosition.top > 0) {
+        --playerPosition.top;
+
+        handleEmitEventByPosition({
+          top: `${playerTop - boxMT}px`,
+          left: `${playerLeft}px`,
+        });
+        playerRef.current.style.top = `${playerTop - boxMT}px`;
+      }
+      if (key === 'ArrowDown' && playerPosition.top < 8) {
+        playerPosition.top++;
+
+        handleEmitEventByPosition({
+          top: `${playerTop + boxMT}px`,
+          left: `${playerLeft}px`,
+        });
+        playerRef.current.style.top = `${playerTop + boxMT}px`;
+      }
+      if (key === 'ArrowLeft' && playerPosition.left > 0) {
+        playerPosition.left--;
+
+        handleEmitEventByPosition({
+          top: `${playerTop}px`,
+          left: `${playerLeft - boxMT}px`,
+        });
+
+        playerRef.current.style.left = `${playerLeft - boxMT}px`;
+      }
+      if (key === 'ArrowRight' && playerPosition.left < 8) {
+        playerPosition.left++;
+
+        handleEmitEventByPosition({
+          top: `${playerTop}px`,
+          left: `${playerLeft + boxMT}px`,
+        });
+
+        playerRef.current.style.left = `${playerLeft + boxMT}px`;
+      }
     };
 
     addEventListener('keydown', keyDownEvent);
 
     return () => removeEventListener('keydown', keyDownEvent);
-  }, [checkEvent, keyFuncs]);
-
-  useEffect(() => {
-    if (currentSelect === currentPointPosition && status === 'running') {
-      handleChangePointPosition(generatePointNumber());
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentSelect]);
-
-  const generatePointNumber = useCallback(() => {
-    let num: number = Math.floor(Math.random() * (TOTAL_COLS * TOTAL_ROWS));
-
-    if (num === currentSelect) {
-      return Math.floor(Math.random() * (TOTAL_COLS * TOTAL_ROWS));
-    }
-    return num;
-  }, [currentSelect]);
-
-  const handleChangeStatus = useCallback(() => {
-    toggleStatus();
-
-    if (status === 'running') {
-      return handleChangePointPosition(null);
-    }
-
-    handleChangePointPosition(generatePointNumber());
-
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, session]);
+  }, [handleEmitEventByPosition, keyRoom, session.data, socket]);
 
   return (
-    <MyContainer>
-      <Header
-        height={56}
-        mb={16}
-        display='flex'
-        sx={{ justifyContent: 'space-between', alignItems: 'center' }}
-      >
-        <ToggleStatus handleChangeStatus={handleChangeStatus} />
-        <MantineFlex direction='column'>
-          <Code display='flex' sx={{ gap: '4px', alignItems: 'center' }}>
-            {keyRoom}
-            <MyCopyButton keyRoom={keyRoom} />
-          </Code>
-        </MantineFlex>
-      </Header>
-      <MantineFlex
-        ref={flexRef}
-        mih={50}
-        gap={5}
-        justify='flex-start'
-        align='flex-start'
-        direction='row'
-        wrap='wrap'
-      >
-        {children}
-      </MantineFlex>
-    </MyContainer>
+    <Container size='xl'>
+      <Grid columns={12} justify='space-between'>
+        <Grid.Col span={6}>
+          <Grid columns={9} gutter={8}>
+            <Player forwardRef={playerRef} />
+            {players.map((player) => (
+              <Player
+                key={player.id}
+                enemy
+                {...(player.position || { left: 0, top: 0 })}
+              />
+            ))}
+            {bricksArray.map((i) => (
+              <Grid.Col key={i} span={1}>
+                <Skeleton mih={63.55} miw={63.55} animate={false} radius='xs' />
+              </Grid.Col>
+            ))}
+          </Grid>
+        </Grid.Col>
+        <Grid.Col span={5}>
+          <Stack>
+            <Skeleton
+              height={SECONDARY_COL_HEIGHT}
+              radius='md'
+              animate={false}
+            />
+            <Skeleton
+              height={SECONDARY_COL_HEIGHT}
+              animate={false}
+              radius='md'
+            />
+          </Stack>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 };
 
-const MyContainer = memo(({ children }: PropsWithChildren) => (
-  <Container maw={453}>{children}</Container>
-));
+type PlayerProps = {
+  forwardRef?: RefObject<HTMLDivElement>;
+  top?: number;
+  left?: number;
+  enemy?: boolean;
+};
 
-const MyCopyButton = memo(({ keyRoom }: { keyRoom: string }) => (
-  <CopyButton value={keyRoom} timeout={2000}>
-    {({ copied, copy }) => (
-      <Tooltip label={copied ? 'Copied' : 'Copy'} withArrow position='right'>
-        <ActionIcon color={copied ? 'teal' : 'gray'} onClick={copy}>
-          {copied ? <Check size={16} /> : <Copy size={16} />}
-        </ActionIcon>
-      </Tooltip>
-    )}
-  </CopyButton>
-));
+const Player = ({ forwardRef, top, left, enemy = false }: PlayerProps) => {
+  console.log(top, left);
+  return (
+    <Grid.Col
+      span={1}
+      sx={{
+        position: 'absolute',
+        zIndex: enemy ? 1000 : 2000,
+      }}
+    >
+      <Paper
+        ref={forwardRef}
+        shadow='xs'
+        radius='xs'
+        p='md'
+        sx={{
+          position: 'relative',
+          ...(!!top && { top }),
+          ...(!!left && { left }),
+        }}
+        w={63.55}
+        h={63.55}
+        bg={enemy ? 'orange' : 'cyan'}
+      />
+    </Grid.Col>
+  );
+};

@@ -4,6 +4,7 @@ import { NextApiResponseServerIO } from '@/types/next';
 import { Server as ServerIO } from 'socket.io';
 import { Server as NetServer } from 'http';
 import { SOCKET_EVENTS } from '@/types/socketEvents';
+import { playerDbClient } from '@/services/db/playerClient';
 
 export const config = {
   api: {
@@ -14,22 +15,27 @@ export const config = {
 export default async (req: NextApiRequest, res: NextApiResponseServerIO) => {
   if (!res.socket.server.io) {
     console.log('New Socket.io server...');
-    // adapt Next's net Server to http Server
+
     const httpServer: NetServer = res.socket.server as any;
     const io = new ServerIO(httpServer, {
       path: '/api/socketio',
     });
 
     io.sockets.on('connection', function (socket) {
-      socket.on(SOCKET_EVENTS.ENTER_ROOM, ({ playerId, keyRoom }) => {
+      socket.on(SOCKET_EVENTS.ENTER_ROOM, async ({ playerId, keyRoom }) => {
+        console.log('ENTER');
+        const players = await playerDbClient.findAllPlayersByRoomId(keyRoom);
+
         socket.broadcast.emit(SOCKET_EVENTS.INSERT_PLAYER_ON_GAME, {
           playerId,
           keyRoom,
+          players,
         });
       });
       socket.on(
         SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM,
         ({ keyRoom, position, playerId }) => {
+          console.log({ keyRoom, position, playerId });
           socket.broadcast.emit(
             SOCKET_EVENTS.CHANGE_POSITION_BY_USER_ID_AND_KEY_ROOM,
             {

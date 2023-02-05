@@ -25,6 +25,9 @@ class PlayerClient {
       where: { providerId },
     });
   }
+  async findAllPlayersByRoomId(roomId: string) {
+    return this.dbClient.findMany({ where: { roomId } });
+  }
 }
 
 export const playerDbClient = new PlayerClient(prismaClient['player']);

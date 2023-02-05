@@ -6,10 +6,16 @@ type ChangeRoomByPlayerId = {
   keyRoom?: string;
   isOwner?: boolean;
 };
+type GetPlayersByRoomIdAndPlayerId = {
+  playerId: string;
+  keyRoom?: string;
+};
+type ResultGetPlayersByRoomIdAndPlayerId = {
+  players: Player[];
+};
 
 type ResultChangeRoomByPlayerId = {
-  room: Room;
-  player: Player;
+  players: Player;
 };
 
 export class GameService {
@@ -20,5 +26,14 @@ export class GameService {
   async changeRoomByPlayerId(body: ChangeRoomByPlayerId) {
     const httpClient = new HttpClient('http://localhost:3000');
     return httpClient.patch<ResultChangeRoomByPlayerId>('/api/room', { body });
+  }
+  async getPlayersByRoomIdAndPlayerId({
+    playerId,
+    keyRoom,
+  }: GetPlayersByRoomIdAndPlayerId) {
+    const httpClient = new HttpClient('http://localhost:3000');
+    return httpClient.get<ResultGetPlayersByRoomIdAndPlayerId>(
+      `/api/room?playerId=${playerId}&keyRoom=${keyRoom}`
+    );
   }
 }

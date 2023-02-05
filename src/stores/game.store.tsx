@@ -56,7 +56,6 @@ export const useGameStore = create<UseGameStore>((set) => {
       return set((s) => ({ ...s, currentPointPosition: position }));
     },
     handleChangeSelect(session, socket, keyRoom) {
-      console.log({ socket });
       const emitChangePosition = (position: number) => {
         socket.emit(SOCKET_EVENTS.CHANGE_POSITION_BY_ROOM, {
           keyRoom,
